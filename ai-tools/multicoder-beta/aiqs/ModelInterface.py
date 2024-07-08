@@ -222,7 +222,7 @@ class ModelInterface():
         elif model.startswith("local"):
             log(model)
             model = "-".join(model.split("-")[1:])
-            if model is "":
+            if model == "":
                 raise ValueError(f"Invalid local model: {model}")
             result_text = self.invoke_local_chat_model(prompt, model, max_tokens=max_tokens, temperature=temperature)
         else:
