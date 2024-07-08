@@ -3,3 +3,5 @@ tqdm
 python-docx
 fpdf
 anthropic
+boto3
+openai
