@@ -5,3 +5,4 @@ fpdf
 anthropic
 boto3
 openai
+llama-cpp-python
