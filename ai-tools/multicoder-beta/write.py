@@ -2,8 +2,6 @@ import os
 import re
 from utils import get_latest_version_folder, read_response_file, apply_mcdiff
 
-
-
 def handle_write(m):
     version_folder = get_latest_version_folder()
     response_file = os.path.join(version_folder, "responses", f"response{m}.txt")
@@ -19,7 +17,14 @@ def handle_write(m):
             if dir_path:  # Ensure dir_path is not empty
                 os.makedirs(dir_path, exist_ok=True)
             with open(file_path, 'w') as f:
-                f.write(file_content)
+                lines = file_content.splitlines()
+                if lines and '```' in lines[0]:
+                    lines = lines[1:]
+                if lines and '```' in lines[-1]:
+                    lines = lines[:-1]
+                cleaned_content = '\n'.join(lines)
+                with open(file_path, 'w') as f:
+                    f.write(cleaned_content)
             print(f"File created: {file_path}")
 
     # Handle mcdiff changes
