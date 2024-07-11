@@ -35,6 +35,8 @@ aliases = {
     
     "mcoderb":f"python3 {current_dir}/ai-tools/multicoder-beta/multicoder.py",
     "mcb":"mcoderb",
+    
+    "smpl": f"python3 {current_dir}/cb-tools/smpl/smplfy.py", # runs simplescript
 
     # productivity stuff
     "togglesite": f"sudo python3 {current_dir}/productivity-tools/toggle_site_blocking.py", # toggles blocking a site. `togglesite [website]`. has aliases too. `togglesite x` blocks twitter/x.com. see /prod-tools/site_aliases.cfg
