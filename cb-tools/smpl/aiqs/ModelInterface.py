@@ -3,26 +3,32 @@ import base64
 import os
 import json
 import logging
+import time
 from aiqs.logger import log
 from aiqs.CostTracker import CostTracker
 import boto3
 from botocore.exceptions import ClientError
 from openai import OpenAI
 import anthropic
+from llama_cpp import Llama
 
 class ModelInterface():
-    def __init__(self, client=None, cost_tracker=None):
+    def __init__(self, client=None, cost_tracker=None, model_path=None):
         if client:
             self.client = client
         else:
             # Make a client for Amazon Bedrock
-            self.client = boto3.client(
-                service_name="bedrock-runtime",
-                region_name=os.environ.get("AWS_REGION"),
-                aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
-                aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
-                aws_session_token=os.environ.get("SESSION_TOKEN"),
-            )
+            try:
+                self.client = boto3.client(
+                    service_name="bedrock-runtime",
+                    region_name=os.environ.get("AWS_REGION"),
+                    aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
+                    aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+                    aws_session_token=os.environ.get("SESSION_TOKEN"),
+                )
+            except Exception as err:
+                log(f"Failed to initialize bedrock runtime, foregoing and continuing")
+                self.client = None
 
         if cost_tracker:
             self.cost_tracker = cost_tracker
@@ -183,7 +189,20 @@ class ModelInterface():
         except Exception as err:
             log(f"Couldn't invoke Anthropic {model}. Here's why: {str(err)}")
             raise
-
+    
+    def invoke_local_chat_model(self, prompt, model, max_tokens=1000, temperature=0.7, system_prompt="You are a helpful chatbot."):
+        """Invokes either a self-hosted model (local or external) to run an inference request"""
+        if self.model is None:
+            log("One moment, loading model...")
+            start_time = time.time_ns()
+            self.model = Llama(model_path=model)
+            log("Loaded after %.2f seconds" % ((time.time_ns() - start_time)/1e9))
+        try:
+            response = self.model(prompt, max_tokens=max_tokens, echo=True)
+            return response['choices'][0]['text'], response["usage"]
+        except Exception as err:
+            log(f"Couldn't invoke homebrew model. Here's why: {str(err)}")
+                      
     def send_to_ai(self, prompt, model, max_tokens=1000, temperature=0.5, stream=True, metrics=True):
         log(f"Sending to {model}")
         log("SENDING PROMPT, LENGTH =", len(prompt))
@@ -200,6 +219,12 @@ class ModelInterface():
             result_text, metrics = self.invoke_openai_chat_model(prompt, model, max_tokens=max_tokens, temperature=temperature)
         elif model.startswith("anthropic-"):
             result_text, metrics = self.invoke_anthropic_chat_model(prompt, model, max_tokens=max_tokens, temperature=temperature)
+        elif model.startswith("local"):
+            log(model)
+            model = "-".join(model.split("-")[1:])
+            if model == "":
+                raise ValueError(f"Invalid local model: {model}")
+            result_text = self.invoke_local_chat_model(prompt, model, max_tokens=max_tokens, temperature=temperature)
         else:
             raise ValueError(f"Unsupported model: {model}")
         
