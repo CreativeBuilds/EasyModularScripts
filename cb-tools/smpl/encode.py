@@ -5,7 +5,7 @@ from aiqs import ModelInterface
 from utils import create_version_folder, save_response, log_cost, get_user_instructions_from_nvim, read_mcignore, gather_files
 from system_prompt import SYSTEM_PROMPT
 
-def handle_get(llm_count, pattern, recursive, model=None, max_tokens=4095, user_instructions=None):
+def handle_encode(llm_count, pattern, recursive, model=None, max_tokens=4095, user_instructions=None):
     if user_instructions is None:
         user_instructions = get_user_instructions_from_nvim()
         
@@ -26,7 +26,7 @@ def handle_get(llm_count, pattern, recursive, model=None, max_tokens=4095, user_
             continue
 
     prompt = SYSTEM_PROMPT + "\n"
-    prompt += f'<user instructions>\n{user_instructions}\n</user instructions>\n'
+    prompt += f'<user instructions>\n{user_instructions}\nAlso output all the files give to you in the simplescript format.</user instructions>\n'
     prompt += '<project files>\n'
     for file in files:
         try:
