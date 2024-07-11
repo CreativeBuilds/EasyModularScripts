@@ -1,7 +1,7 @@
 import sys
 import os
 import shutil
-from get import handle_get
+from encode import handle_encode
 from write import handle_write, list_responses
 from rollback import handle_rollback
 from utils import clear_workspace, create_backup, undo_last_write, backup_current_state, ignore, unignore, lsignores
@@ -20,14 +20,14 @@ except:
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: smplfy <command> [options]")
+        print("Usage: smpl <command> [options]")
         sys.exit(1)
 
     command = sys.argv[1]
 
     if command == "encode":
         if len(sys.argv) < 4:
-            print("Usage: smplfy encode <llm_count> <pattern> [-r] [user_instructions]")
+            print("Usage: smpl encode <llm_count> <pattern> [-r] [user_instructions]")
             sys.exit(1)
         llm_count = int(sys.argv[2])
         pattern = sys.argv[3]
@@ -42,10 +42,10 @@ def main():
         else:
             if len(sys.argv) > 4:
                 user_instructions = ' '.join(sys.argv[4:])
-        handle_get(llm_count, pattern, recursive, model=MODEL, max_tokens=MAX_TOKENS, user_instructions=user_instructions)
+        handle_encode(llm_count, pattern, recursive, model=MODEL, max_tokens=MAX_TOKENS, user_instructions=user_instructions)
     elif command == "write":
         if len(sys.argv) < 3:
-            print("Usage: smplfy write <m>")
+            print("Usage: smpl write <m>")
             sys.exit(1)
         if sys.argv[2] == "list":
             list_responses()
@@ -61,7 +61,7 @@ def main():
         clear_workspace(confirm)
     elif command == "backup":
         if len(sys.argv) < 3:
-            print("Usage: smplfy backup <backup_name>")
+            print("Usage: smpl backup <backup_name>")
             sys.exit(1)
         backup_name = sys.argv[2]
         create_backup(backup_name)
@@ -69,13 +69,13 @@ def main():
         undo_last_write()
     elif command == "ignore":
         if len(sys.argv) < 3:
-            print("Usage: smplfy ignore <pattern>")
+            print("Usage: smpl ignore <pattern>")
             sys.exit(1)
         pattern = sys.argv[2]
         ignore(pattern)
     elif command == "rmignore":
         if len(sys.argv) < 3:
-            print("Usage: smplfy rmignore <pattern>")
+            print("Usage: smpl rmignore <pattern>")
             sys.exit(1)
         pattern = sys.argv[2]
         unignore(pattern)
